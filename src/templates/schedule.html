@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ config['SCHED_PAGETITLE'] }}</title>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            min-height: 100vh;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .schedule-container {
+            flex: 1 1 auto;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        table.schedule-table {
+            width: 100%;
+            height: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        table.schedule-table th, table.schedule-table td {
+            border: 1px solid #aaa;
+            vertical-align: top;
+            /* Убираем фиксированную ширину, чтобы использовать min/max-width через flex */
+            padding: 2px;
+        }
+        .schedule-table tr {
+            /* Для совместимости с flex-контейнером */
+        }
+        .schedule-table {
+            width: 100%;
+            height: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        /* FLEX-решение для ограничения ширины колонок */
+        .schedule-table,
+        .schedule-table tr {
+            display: flex;
+            width: 100%;
+        }
+        .schedule-table th,
+        .schedule-table td {
+            flex: 1 1 0;
+            min-width: 20vw;
+            max-width: 50vw;
+            box-sizing: border-box;
+            /* Для совместимости с table-layout: fixed */
+            overflow: hidden;
+        }
+        .header-row th {
+            min-height: 20px;
+            height: 1.5em !important;
+            vertical-align: middle !important;
+            padding-top: 2px;
+            padding-bottom: 2px;
+            background: #cc0000;
+            color: #fff;
+        }
+        .header-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #fff;
+            text-transform: uppercase;
+        }
+        .header-weekday {
+            font-size: 0.95em;
+            color: #fff;
+            font-weight: normal;
+            letter-spacing: 1px;
+        }
+        .spectacles-row td {
+            min-height: 20px;
+            height: 1.5em !important;
+            vertical-align: middle !important;
+            padding-top: 2px;
+            padding-bottom: 2px;
+            background: #cc0000;
+            text-align: center;
+            font-weight: bold;
+            color: #fff;
+            text-transform: uppercase;
+        }
+        .cell-row {
+            height: 39vh;
+            max-height: 39vh;
+        }
+        .card {
+            margin: 4px 0;
+            padding: 4px;
+            border-radius: 4px;
+            background: #fff;
+            box-shadow: 0 1px 2px #ccc;
+            font-size: 0.95em;
+        }
+        .card-header {
+            background: #cc0000;
+            color: #fff;
+            font-weight: bold;
+            text-transform: uppercase;
+            padding: 2px 4px;
+            border-radius: 3px 3px 0 0;
+            margin-bottom: 2px;
+            font-size: 1em;
+        }
+        .card-content {
+            padding: 2px 4px;
+        }
+        .card-footer {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 2px;
+        }
+        .row-label {
+            font-size: 0.9em;
+            color: #888;
+            text-align: right;
+            padding-right: 6px;
+        }
+    </style>
+    <style>
+        .vitrina-title-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+        .vitrina-title {
+            color: #cc0000;
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+            font-size: 1.8em;
+            font-weight: bold;
+            text-align: center;
+            margin: 0.5em 0 0.5em 0;
+            letter-spacing: 1px;
+            max-width: 100vw;
+            width: 100%;
+            display: block;
+        }
+        .schedule-table {
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="schedule-container">
+    <div class="vitrina-title">{{ config['SCHED_PAGETITLE'] }}</div>
+    <table class="schedule-table">
+        <!-- 0. Строка с заголовком страницы -->
+        <tr>
+            <td colspan="{{ schedule|length }}" style="border:none; background:transparent; padding:0;">
+                
+            </td>
+        </tr>
+        <!-- 1. Строка с датами и словом РЕПЕТИЦИИ -->
+        <tr class="header-row">
+            {% for day in schedule %}
+                <th>
+                    {% set months = [
+                        '', 'ЯНВАРЯ', 'ФЕВРАЛЯ', 'МАРТА', 'АПРЕЛЯ', 'МАЯ', 'ИЮНЯ',
+                        'ИЮЛЯ', 'АВГУСТА', 'СЕНТЯБРЯ', 'ОКТЯБРЯ', 'НОЯБРЯ', 'ДЕКАБРЯ'
+                    ] %}
+                    {% set weekday = ['ПОНЕДЕЛЬНИК', 'ВТОРНИК', 'СРЕДА', 'ЧЕТВЕРГ', 'ПЯТНИЦА', 'СУББОТА', 'ВОСКРЕСЕНЬЕ'] %}
+                    <div class="header-title">
+                        РЕПЕТИЦИИ {{ day.date.day }} {{ months[day.date.month] }}<br>
+                        <span class="header-weekday">{{ weekday[day.date.weekday()] }}</span>
+                    </div>
+                </th>
+            {% endfor %}
+        </tr>
+        <!-- 2. Строка с карточками репетиций и собраний -->
+        <tr class="cell-row">
+            {% for day in schedule %}
+                <td>
+                    {% for event in day.top %}
+                        {% if event.event_type == 'rehearsal_group' %}
+                            <div class="card">
+                                <div class="card-header">
+                                    {{ event.title.upper() }}
+                                </div>
+                                <div class="card-content">
+                                    <div>
+                                        <span style="float:left; font-weight:bold; font-weight:bold;">{{ event.place }}</span>
+                                        <span style="float:right;">{{ event.resources.upper() }}</span>
+                                        <div style="clear:both;"></div>
+                                    </div>
+                                    {% for rehearsal in event.rehearsals %}
+                                        <div style="margin-top: 0.5em;">
+                                            <b>
+                                                {{ rehearsal.start_time.replace(':', '.') }}
+                                                {% if rehearsal.end_time %}–{{ rehearsal.end_time.replace(':', '.') }}{% endif %}
+                                            </b>
+                                            <div>{{ rehearsal.participants }}</div>
+                                            <div>
+                                                <span style="float:left;">{{ rehearsal.responsible_1 }}</span>
+                                                <span style="float:right;">{{ rehearsal.responsible_2 }}</span>
+                                                <div style="clear:both;"></div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% elif event.event_type == 'rehearsal' %}
+                            <div class="card">
+                                <div class="card-header">
+                                    {{ event.title.upper() }}
+                                </div>
+                                <div class="card-content">
+                                    <div>
+                                        <span style="float:left;">{{ event.place }}</span>
+                                        <span style="float:right;">{{ event.resources.upper() }}</span>
+                                        <div style="clear:both;"></div>
+                                    </div>
+                                    <div>
+                                        <b>
+                                            {{ event.start_time.replace(':', '.') }}
+                                            {% if event.end_time %}–{{ event.end_time.replace(':', '.') }}{% endif %}
+                                        </b>
+                                    </div>
+                                    <div>{{ event.participants }}</div>
+                                    <div>
+                                        <span style="float:left;">{{ event.responsible_1 }}</span>
+                                        <span style="float:right;">{{ event.responsible_2 }}</span>
+                                        <div style="clear:both;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% elif event.event_type == 'meeting' %}
+                            <div class="card">
+                                <div class="card-header">
+                                    {{ event.title.upper() }}
+                                </div>
+                                <div class="card-content">
+                                    <div>
+                                        <b>
+                                            {{ event.start_time.replace(':', '.') }}
+                                            {% if event.end_time %}–{{ event.end_time.replace(':', '.') }}{% endif %}
+                                        </b>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </td>
+            {% endfor %}
+        </tr>
+        <!-- 3. Строка со словом "СПЕКТАКЛИ" -->
+        <tr class="spectacles-row">
+            {% for day in schedule %}
+                <td>
+                    СПЕКТАКЛИ
+                </td>
+            {% endfor %}
+        </tr>
+        <!-- 4. Строка с карточками спектаклей -->
+        <tr class="cell-row">
+            {% for day in schedule %}
+                <td>
+                    {% for event in day.bottom %}
+                        <div class="card">
+                            <div class="card-header">
+                                {{ event.title.upper() }}
+                            </div>
+                            <div class="card-content">
+                                <div style="font-weight:bold; margin-bottom:2px;">{{ event.place }}</div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <b>{{ event.start_time.replace(':', '.') }}</b>
+                                    {% if event.stage_manager %}
+                                        <span style="margin-left:auto; font-weight:normal;">{{ event.stage_manager }}</span>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    {%- set cast_lines = event.cast.replace(', ', '\n').replace(',', '\n').split('\n') if event.cast else [] -%}
+                                    {% for line in cast_lines %}
+                                        {{ line }}<br>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </td>
+            {% endfor %}
+        </tr>
+    </table>
+    </div>
+</body>
+</html>

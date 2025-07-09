@@ -6,8 +6,8 @@ __pycache__/
 dist/
 build/
 env/
-venv/
-
+.venv/
+.env
 # Docker
 *.log
 *.pid
